@@ -18,23 +18,16 @@ const (
 	publicApiKey = "da2-js63uvc7c5hwpdudt657d5lyou"
 )
 
-var (
-	userAgent string
-)
-
 type apiKeyTransport struct {
-	key       string
-	userAgent string
+	key string
 }
 
 func (t *apiKeyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Set("x-api-key", t.key)
-	req.Header.Set("User-Agent", t.userAgent)
 	return http.DefaultTransport.RoundTrip(req)
 }
 
 func main() {
-	userAgent = "polestar-exporter"
 	log := util.NewLogger("polestar")
 	id, err := polestar.NewIdentity(log, os.Getenv("POLESTAR_USER"), os.Getenv("POLESTAR_PASSWORD"))
 	if err != nil {
@@ -58,7 +51,7 @@ func main() {
 	}
 	fmt.Printf("cars: %v\n", carsRes)
 
-	publicClient := graphql.NewClient(publicApiURI, &http.Client{Transport: &apiKeyTransport{key: publicApiKey, userAgent: userAgent}})
+	publicClient := graphql.NewClient(publicApiURI, &http.Client{Transport: &apiKeyTransport{key: publicApiKey}})
 
 	for _, car := range carsRes.GetConsumerCarsV2 {
 		var imagesRes struct {
