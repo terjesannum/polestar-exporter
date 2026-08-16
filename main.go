@@ -49,7 +49,7 @@ func main() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "query failed: %v\n", err)
 	}
-	fmt.Printf("cars: %v\n", carsRes)
+	fmt.Printf("cars: %v\n\n", carsRes)
 
 	publicClient := graphql.NewClient(publicApiURI, &http.Client{Transport: &apiKeyTransport{key: publicApiKey}})
 
@@ -66,7 +66,19 @@ func main() {
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "query failed: %v\n", err)
 		}
-		fmt.Printf("images: %v\n", imagesRes)
+		fmt.Printf("images: %v\n\n", imagesRes)
+	}
+
+	for _, car := range carsRes.GetConsumerCarsV2 {
+		var telemetryRes struct {
+			CarTelemetryData `graphql:"carTelematicsV2(vins: $vins)"`
+		}
+
+		err = client.Query(ctx, &telemetryRes, map[string]any{
+			"vins": []string{car.VIN},
+		}, graphql.OperationName("CarTelematicsV2"))
+
+		fmt.Printf("telemetry: %v\n\n", telemetryRes)
 	}
 
 }
