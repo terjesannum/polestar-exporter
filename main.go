@@ -61,7 +61,7 @@ func main() {
 			"pno34":         graphql.String(car.Pno34),
 			"structureWeek": graphql.String(car.StructureWeek),
 			"modelYear":     graphql.String(car.ModelYear),
-			"locale":        graphql.String("en_GB"),
+			"locale":        graphql.String("no_NO"),
 		}, graphql.OperationName("GetCarImages"))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "query failed: %v\n", err)
