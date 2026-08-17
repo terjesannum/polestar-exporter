@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"net/http"
 	"os"
@@ -27,14 +28,22 @@ type apiKeyTransport struct {
 	key string
 }
 
+var (
+	username string
+	password string
+)
+
 func (t *apiKeyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Set("x-api-key", t.key)
 	return http.DefaultTransport.RoundTrip(req)
 }
 
 func main() {
+	flag.StringVar(&username, "username", os.Getenv("POLESTAR_USER"), "Polestar username")
+	flag.StringVar(&password, "password", os.Getenv("POLESTAR_PASSWORD"), "Polestar password")
+	flag.Parse()
 	log := util.NewLogger("polestar")
-	id, err := polestar.NewIdentity(log, os.Getenv("POLESTAR_USER"), os.Getenv("POLESTAR_PASSWORD"))
+	id, err := polestar.NewIdentity(log, username, password)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "login failed: %v\n", err)
 		os.Exit(1)
