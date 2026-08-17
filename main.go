@@ -130,6 +130,7 @@ func main() {
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "http server failed: %v\n", err)
+		time.Sleep(10 * time.Second)
 		os.Exit(1)
 	}
 }
