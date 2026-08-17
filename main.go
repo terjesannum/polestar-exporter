@@ -46,6 +46,7 @@ func main() {
 	id, err := polestar.NewIdentity(log, username, password)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "login failed: %v\n", err)
+		time.Sleep(10 * time.Second)
 		os.Exit(1)
 	}
 	httpClient := request.NewClient(log)
