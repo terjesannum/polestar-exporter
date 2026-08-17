@@ -72,7 +72,7 @@ jobs:
       - uses: actions/checkout@v7
       - name: Get version
         id: get_version
-      run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
+        run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
       - name: Get go version
         id: get_go_version
         run: sed -n -E '/^FROM/ {s/^FROM golang:([0-9.]+).*/go_version=\1/p;q}' Dockerfile >> $GITHUB_OUTPUT
