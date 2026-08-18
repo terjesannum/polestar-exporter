@@ -95,13 +95,12 @@ func main() {
 		prometheus.MustRegister(NewCollector(car.VIN, &atomicTelemetry))
 		go func() {
 			fetchTelemetry := func() {
-				fmt.Println("Querying telemetry for", car.VIN)
 				var tempRes GetCarTelemetryResponse
 				err = client.Query(ctx, &tempRes, map[string]any{
 					"vins": []string{car.VIN},
 				}, graphql.OperationName("CarTelematicsV2"))
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "query failed: %v\n", err)
+					fmt.Fprintf(os.Stderr, "Telemetry query for %s failed: %v\n", car.VIN, err)
 					return
 				}
 				atomicTelemetry.Store(&tempRes.CarTelemetryData)
