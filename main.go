@@ -55,11 +55,9 @@ func main() {
 		Source: id,
 	}
 	client := graphql.NewClient(polestar.ApiURIv2, httpClient)
-	var carsRes struct {
-		GetConsumerCarsV2 []ConsumerCar `graphql:"getConsumerCarsV2"`
-	}
 	ctx := context.Background()
 
+	var carsRes GetCarsResponse
 	err = client.Query(ctx, &carsRes, nil, graphql.OperationName("getCars"))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "query failed: %v\n", err)
@@ -68,9 +66,7 @@ func main() {
 	publicClient := graphql.NewClient(publicApiURI, &http.Client{Transport: &apiKeyTransport{key: publicApiKey}})
 
 	for _, car := range carsRes.GetConsumerCarsV2 {
-		var imagesRes struct {
-			GetCarImages CarImages `graphql:"getCarImages(pno34: $pno34, structureWeek: $structureWeek, modelYear: $modelYear, locale: $locale)"`
-		}
+		var imagesRes GetCarImagesResponse
 		err = publicClient.Query(ctx, &imagesRes, map[string]any{
 			"pno34":         graphql.String(car.Pno34),
 			"structureWeek": graphql.String(car.StructureWeek),
@@ -100,9 +96,7 @@ func main() {
 		go func() {
 			fetchTelemetry := func() {
 				fmt.Println("Querying telemetry for", car.VIN)
-				var tempRes struct {
-					CarTelemetryData `graphql:"carTelematicsV2(vins: $vins)"`
-				}
+				var tempRes GetCarTelemetryResponse
 				err = client.Query(ctx, &tempRes, map[string]any{
 					"vins": []string{car.VIN},
 				}, graphql.OperationName("CarTelematicsV2"))

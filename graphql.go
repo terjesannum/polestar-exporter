@@ -62,3 +62,15 @@ type OdometerData struct {
 	OdometerMeters int64
 	Timestamp      EventUpdatedTimestamp
 }
+
+type GetCarsResponse struct {
+	GetConsumerCarsV2 []ConsumerCar `graphql:"getConsumerCarsV2"`
+}
+
+type GetCarImagesResponse struct {
+	GetCarImages CarImages `graphql:"getCarImages(pno34: $pno34, structureWeek: $structureWeek, modelYear: $modelYear, locale: $locale)"`
+}
+
+type GetCarTelemetryResponse struct {
+	CarTelemetryData `graphql:"carTelematicsV2(vins: $vins)"`
+}
