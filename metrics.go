@@ -31,6 +31,9 @@ type TelemetryCollector struct {
 	chargingTimeToFull     *prometheus.Desc
 	batteryLevel           *prometheus.Desc
 	batteryDistanceToEmpty *prometheus.Desc
+	healthTimestamp        *prometheus.Desc
+	batteryTimestamp       *prometheus.Desc
+	odometerTimestamp      *prometheus.Desc
 }
 
 func NewCollector(vin string, telemetry *atomic.Pointer[CarTelemetryData]) *TelemetryCollector {
@@ -72,6 +75,21 @@ func NewCollector(vin string, telemetry *atomic.Pointer[CarTelemetryData]) *Tele
 			"Estimated distance to empty in meters",
 			nil,
 			labels),
+		healthTimestamp: prometheus.NewDesc(
+			"polestar_health_timestamp_seconds",
+			"Timestamp of the health data",
+			nil,
+			labels),
+		batteryTimestamp: prometheus.NewDesc(
+			"polestar_battery_timestamp_seconds",
+			"Timestamp of the battery data",
+			nil,
+			labels),
+		odometerTimestamp: prometheus.NewDesc(
+			"polestar_odometer_timestamp_seconds",
+			"Timestamp of the odometer data",
+			nil,
+			labels),
 	}
 }
 
@@ -83,6 +101,9 @@ func (c *TelemetryCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- c.chargingTimeToFull
 	ch <- c.batteryLevel
 	ch <- c.batteryDistanceToEmpty
+	ch <- c.healthTimestamp
+	ch <- c.batteryTimestamp
+	ch <- c.odometerTimestamp
 }
 
 func metricTimestamp(ts EventUpdatedTimestamp) (time.Time, error) {
@@ -103,66 +124,64 @@ func (c *TelemetryCollector) Collect(ch chan<- prometheus.Metric) {
 	if len(data.Health) == 1 {
 		var ts, err = metricTimestamp(data.Health[0].Timestamp)
 		if err == nil {
-			ch <- prometheus.NewMetricWithTimestamp(
-				ts,
-				prometheus.MustNewConstMetric(
-					c.serviceSeconds,
-					prometheus.GaugeValue,
-					float64(data.Health[0].DaysToService*24*60*60)))
-			ch <- prometheus.NewMetricWithTimestamp(
-				ts,
-				prometheus.MustNewConstMetric(
-					c.serviceMeters,
-					prometheus.GaugeValue,
-					float64(data.Health[0].DistanceToServiceKm*1000)))
+			ch <- prometheus.MustNewConstMetric(
+				c.healthTimestamp,
+				prometheus.GaugeValue,
+				float64(ts.Unix()))
+			ch <- prometheus.MustNewConstMetric(
+				c.serviceSeconds,
+				prometheus.GaugeValue,
+				float64(data.Health[0].DaysToService*24*60*60))
+			ch <- prometheus.MustNewConstMetric(
+				c.serviceMeters,
+				prometheus.GaugeValue,
+				float64(data.Health[0].DistanceToServiceKm*1000))
 		}
 	}
 
 	if len(data.Battery) == 1 {
 		var ts, err = metricTimestamp(data.Battery[0].Timestamp)
 		if err == nil {
+			ch <- prometheus.MustNewConstMetric(
+				c.batteryTimestamp,
+				prometheus.GaugeValue,
+				float64(ts.Unix()))
 			var charging float64
 			if data.Battery[0].ChargingStatusV2 == "CHARGING_STATUS_V2_CHARGING" {
 				charging = 1
 			} else {
 				charging = 0
 			}
-			ch <- prometheus.NewMetricWithTimestamp(
-				ts,
-				prometheus.MustNewConstMetric(
-					c.chargingStatus,
-					prometheus.GaugeValue,
-					charging))
-			ch <- prometheus.NewMetricWithTimestamp(
-				ts,
-				prometheus.MustNewConstMetric(
-					c.chargingTimeToFull,
-					prometheus.GaugeValue,
-					float64(data.Battery[0].EstimatedChargingTimeToFullMinutes*60)))
-			ch <- prometheus.NewMetricWithTimestamp(
-				ts,
-				prometheus.MustNewConstMetric(
-					c.batteryLevel,
-					prometheus.GaugeValue,
-					float64(data.Battery[0].BatteryChargeLevelPercentage)))
-			ch <- prometheus.NewMetricWithTimestamp(
-				ts,
-				prometheus.MustNewConstMetric(
-					c.batteryDistanceToEmpty,
-					prometheus.GaugeValue,
-					float64(data.Battery[0].EstimatedDistanceToEmptyKm*1000)))
+			ch <- prometheus.MustNewConstMetric(
+				c.chargingStatus,
+				prometheus.GaugeValue,
+				charging)
+			ch <- prometheus.MustNewConstMetric(
+				c.chargingTimeToFull,
+				prometheus.GaugeValue,
+				float64(data.Battery[0].EstimatedChargingTimeToFullMinutes*60))
+			ch <- prometheus.MustNewConstMetric(
+				c.batteryLevel,
+				prometheus.GaugeValue,
+				float64(data.Battery[0].BatteryChargeLevelPercentage))
+			ch <- prometheus.MustNewConstMetric(
+				c.batteryDistanceToEmpty,
+				prometheus.GaugeValue,
+				float64(data.Battery[0].EstimatedDistanceToEmptyKm*1000))
 		}
 	}
 
 	if len(data.Odometer) == 1 {
 		var ts, err = metricTimestamp(data.Odometer[0].Timestamp)
 		if err == nil {
-			ch <- prometheus.NewMetricWithTimestamp(
-				ts,
-				prometheus.MustNewConstMetric(
-					c.odometerMeters,
-					prometheus.CounterValue,
-					float64(data.Odometer[0].OdometerMeters)))
+			ch <- prometheus.MustNewConstMetric(
+				c.odometerTimestamp,
+				prometheus.GaugeValue,
+				float64(ts.Unix()))
+			ch <- prometheus.MustNewConstMetric(
+				c.odometerMeters,
+				prometheus.CounterValue,
+				float64(data.Odometer[0].OdometerMeters))
 		}
 	}
 
