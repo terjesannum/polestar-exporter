@@ -109,7 +109,7 @@ func (c *TelemetryCollector) Describe(ch chan<- *prometheus.Desc) {
 func metricTimestamp(ts EventUpdatedTimestamp) (time.Time, error) {
 	seconds, err := strconv.ParseInt(ts.Seconds, 10, 64)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "invalid timestamp: %v\n", ts)
+		fmt.Fprintf(os.Stderr, "Invalid timestamp: %v\n", ts)
 		return time.Time{}, err
 	}
 	return time.Unix(seconds, ts.Nanos), nil
@@ -118,6 +118,7 @@ func metricTimestamp(ts EventUpdatedTimestamp) (time.Time, error) {
 func (c *TelemetryCollector) Collect(ch chan<- prometheus.Metric) {
 	data := c.telemetry.Load()
 	if data == nil {
+		fmt.Fprintln(os.Stderr, "No telemetry data")
 		return
 	}
 
@@ -172,7 +173,7 @@ func (c *TelemetryCollector) Collect(ch chan<- prometheus.Metric) {
 				float64(data.Battery[0].EstimatedDistanceToEmptyKm*1000))
 		}
 	} else {
-		fmt.Fprintf(os.Stderr, "Unexpected battery data: %v\n", data.Health)
+		fmt.Fprintf(os.Stderr, "Unexpected battery data: %v\n", data.Battery)
 	}
 
 	if len(data.Odometer) == 1 {
@@ -188,7 +189,7 @@ func (c *TelemetryCollector) Collect(ch chan<- prometheus.Metric) {
 				float64(data.Odometer[0].OdometerMeters))
 		}
 	} else {
-		fmt.Fprintf(os.Stderr, "Unexpected odometer data: %v\n", data.Health)
+		fmt.Fprintf(os.Stderr, "Unexpected odometer data: %v\n", data.Odometer)
 	}
 
 }

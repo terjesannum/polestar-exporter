@@ -60,7 +60,8 @@ func main() {
 	var carsRes GetCarsResponse
 	err = client.Query(ctx, &carsRes, nil, graphql.OperationName("getCars"))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "query failed: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Query failed: %v\n", err)
+		os.Exit(1)
 	}
 
 	publicClient := graphql.NewClient(publicApiURI, &http.Client{Transport: &apiKeyTransport{key: publicApiKey}})
@@ -74,7 +75,8 @@ func main() {
 			"locale":        graphql.String("no_NO"),
 		}, graphql.OperationName("GetCarImages"))
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "query failed: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Query failed: %v\n", err)
+			os.Exit(1)
 		}
 
 		carInfo.WithLabelValues(car.VIN, car.ModelYear, car.ModelName, car.RegistrationNo).Set(1)
@@ -122,7 +124,7 @@ func main() {
 	http.Handle("/metrics", promhttp.Handler())
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "http server failed: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Http server failed: %v\n", err)
 		time.Sleep(10 * time.Second)
 		os.Exit(1)
 	}
