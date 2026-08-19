@@ -137,6 +137,8 @@ func (c *TelemetryCollector) Collect(ch chan<- prometheus.Metric) {
 				prometheus.GaugeValue,
 				float64(data.Health[0].DistanceToServiceKm*1000))
 		}
+	} else {
+		fmt.Fprintf(os.Stderr, "Unexpected health data: %v\n", data.Health)
 	}
 
 	if len(data.Battery) == 1 {
@@ -169,6 +171,8 @@ func (c *TelemetryCollector) Collect(ch chan<- prometheus.Metric) {
 				prometheus.GaugeValue,
 				float64(data.Battery[0].EstimatedDistanceToEmptyKm*1000))
 		}
+	} else {
+		fmt.Fprintf(os.Stderr, "Unexpected battery data: %v\n", data.Health)
 	}
 
 	if len(data.Odometer) == 1 {
@@ -183,6 +187,9 @@ func (c *TelemetryCollector) Collect(ch chan<- prometheus.Metric) {
 				prometheus.CounterValue,
 				float64(data.Odometer[0].OdometerMeters))
 		}
+	} else {
+		fmt.Fprintf(os.Stderr, "Unexpected odometer data: %v\n", data.Health)
+	}
 	}
 
 }
