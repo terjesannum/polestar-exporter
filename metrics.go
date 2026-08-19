@@ -15,7 +15,7 @@ var (
 	carInfo = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "polestar_info",
 		Help: "Information about the car",
-	}, []string{"vin", "model_year", "model_name", "registration_no"})
+	}, []string{"vin", "model_year", "model_name", "registration_number"})
 	carImage = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "polestar_image",
 		Help: "Car image",
