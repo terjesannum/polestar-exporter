@@ -190,6 +190,5 @@ func (c *TelemetryCollector) Collect(ch chan<- prometheus.Metric) {
 	} else {
 		fmt.Fprintf(os.Stderr, "Unexpected odometer data: %v\n", data.Health)
 	}
-	}
 
 }
