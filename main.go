@@ -29,8 +29,9 @@ type apiKeyTransport struct {
 }
 
 var (
-	username string
-	password string
+	username      string
+	password      string
+	listenAddress string
 )
 
 func (t *apiKeyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -41,6 +42,7 @@ func (t *apiKeyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 func main() {
 	flag.StringVar(&username, "username", os.Getenv("POLESTAR_USER"), "Polestar username")
 	flag.StringVar(&password, "password", os.Getenv("POLESTAR_PASSWORD"), "Polestar password")
+	flag.StringVar(&listenAddress, "listen-address", ":8080", "Address to listen on for HTTP requests")
 	flag.Parse()
 	log := util.NewLogger("polestar")
 	id, err := polestar.NewIdentity(log, username, password)
@@ -124,7 +126,7 @@ func main() {
 
 	prometheus.MustRegister(version.NewCollector("polestar_exporter"))
 	http.Handle("/metrics", promhttp.Handler())
-	err = http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(listenAddress, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Http server failed: %v\n", err)
 		time.Sleep(10 * time.Second)
