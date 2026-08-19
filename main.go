@@ -61,6 +61,7 @@ func main() {
 	err = client.Query(ctx, &carsRes, nil, graphql.OperationName("getCars"))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Query failed: %v\n", err)
+		time.Sleep(10 * time.Second)
 		os.Exit(1)
 	}
 
@@ -76,6 +77,7 @@ func main() {
 		}, graphql.OperationName("GetCarImages"))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Query failed: %v\n", err)
+			time.Sleep(10 * time.Second)
 			os.Exit(1)
 		}
 
