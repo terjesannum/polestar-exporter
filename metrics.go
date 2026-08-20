@@ -42,7 +42,7 @@ func NewCollector(vin string, telemetry *atomic.Pointer[CarTelemetryData]) *Tele
 		telemetry: telemetry,
 		serviceSeconds: prometheus.NewDesc(
 			"polestar_service_remaining_seconds",
-			"Number of seconds until the next service",
+			"Number of seconds until the next required service",
 			nil,
 			labels),
 		serviceMeters: prometheus.NewDesc(
