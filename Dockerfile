@@ -1,4 +1,4 @@
-FROM golang:1.26.6-alpine3.24 AS builder
+FROM golang:1.26.7-alpine3.24 AS builder
 
 RUN apk --update add ca-certificates make git
 RUN echo 'polestar:*:65532:' > /tmp/group && \
