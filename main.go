@@ -40,7 +40,7 @@ func (t *apiKeyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 func main() {
-	flag.StringVar(&username, "username", os.Getenv("POLESTAR_USER"), "Polestar username")
+	flag.StringVar(&username, "username", os.Getenv("POLESTAR_USERNAME"), "Polestar username")
 	flag.StringVar(&password, "password", os.Getenv("POLESTAR_PASSWORD"), "Polestar password")
 	flag.StringVar(&listenAddress, "listen-address", ":8080", "Address to listen on for HTTP requests")
 	flag.Parse()
