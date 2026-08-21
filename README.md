@@ -24,6 +24,9 @@ Your Polestar account is used to query the data, so credentials must be given at
 | `-username`         | `POLESTAR_USERNAME`  |               |
 | `-password`         | `POLESTAR_PASSWORD`  |               |
 | `-listen-address`   |                      | `:8080`       |
+| `-static-only`      |                      | `false`       |
+
+Use `-static-only` if you only need car info and images, no telemetry.
 
 ### Docker container
 

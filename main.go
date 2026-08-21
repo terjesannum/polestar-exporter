@@ -32,6 +32,7 @@ var (
 	username      string
 	password      string
 	listenAddress string
+	staticOnly    bool
 )
 
 func (t *apiKeyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -43,6 +44,7 @@ func main() {
 	flag.StringVar(&username, "username", os.Getenv("POLESTAR_USERNAME"), "Polestar username")
 	flag.StringVar(&password, "password", os.Getenv("POLESTAR_PASSWORD"), "Polestar password")
 	flag.StringVar(&listenAddress, "listen-address", ":8080", "Address to listen on for HTTP requests")
+	flag.BoolVar(&staticOnly, "static-only", false, "Only fetch static data (car info and images)")
 	flag.Parse()
 	log := util.NewLogger("polestar")
 	id, err := polestar.NewIdentity(log, username, password)
@@ -93,35 +95,37 @@ func main() {
 		fmt.Printf("Found car %s (%s)\n", car.VIN, car.RegistrationNo)
 	}
 
-	for _, car := range carsRes.GetConsumerCarsV2 {
-		ticker := time.NewTicker(time.Minute)
-		quit := make(chan struct{})
-		var atomicTelemetry atomic.Pointer[CarTelemetryData]
-		atomicTelemetry.Store(&CarTelemetryData{})
-		prometheus.MustRegister(NewCollector(car.VIN, &atomicTelemetry))
-		go func() {
-			fetchTelemetry := func() {
-				var tempRes GetCarTelemetryResponse
-				err = client.Query(ctx, &tempRes, map[string]any{
-					"vins": []string{car.VIN},
-				}, graphql.OperationName("CarTelematicsV2"))
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "Telemetry query for %s failed: %v\n", car.VIN, err)
-					return
+	if !staticOnly {
+		for _, car := range carsRes.GetConsumerCarsV2 {
+			ticker := time.NewTicker(time.Minute)
+			quit := make(chan struct{})
+			var atomicTelemetry atomic.Pointer[CarTelemetryData]
+			atomicTelemetry.Store(&CarTelemetryData{})
+			prometheus.MustRegister(NewCollector(car.VIN, &atomicTelemetry))
+			go func() {
+				fetchTelemetry := func() {
+					var tempRes GetCarTelemetryResponse
+					err = client.Query(ctx, &tempRes, map[string]any{
+						"vins": []string{car.VIN},
+					}, graphql.OperationName("CarTelematicsV2"))
+					if err != nil {
+						fmt.Fprintf(os.Stderr, "Telemetry query for %s failed: %v\n", car.VIN, err)
+						return
+					}
+					atomicTelemetry.Store(&tempRes.CarTelemetryData)
 				}
-				atomicTelemetry.Store(&tempRes.CarTelemetryData)
-			}
-			fetchTelemetry()
-			for {
-				select {
-				case <-ticker.C:
-					fetchTelemetry()
-				case <-quit:
-					ticker.Stop()
-					return
+				fetchTelemetry()
+				for {
+					select {
+					case <-ticker.C:
+						fetchTelemetry()
+					case <-quit:
+						ticker.Stop()
+						return
+					}
 				}
-			}
-		}()
+			}()
+		}
 	}
 
 	prometheus.MustRegister(version.NewCollector("polestar_exporter"))
