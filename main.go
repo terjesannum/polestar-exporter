@@ -97,7 +97,7 @@ func main() {
 
 	if !staticOnly {
 		for _, car := range carsRes.GetConsumerCarsV2 {
-			ticker := time.NewTicker(time.Minute)
+			ticker := time.NewTicker(2 * time.Minute)
 			quit := make(chan struct{})
 			var atomicTelemetry atomic.Pointer[CarTelemetryData]
 			atomicTelemetry.Store(&CarTelemetryData{})
